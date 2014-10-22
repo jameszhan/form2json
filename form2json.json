@@ -1,0 +1,30 @@
+{
+    "name": "form2json",
+    "version": "0.0.1",
+    "title": "W3C HTML JSON form submission",
+    "author": {
+        "name": "James Zhan",
+        "url": "https://github.com/jameszhan"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://www.opensource.org/licenses/mit-license.php"
+        },
+        {
+            "type": "GPL",
+            "url": "http://www.opensource.org/licenses/gpl-license.php"
+        }
+    ],
+    "dependencies": {
+        "jquery": ">=1.2"
+    },
+    "description": "Serializes a form into a JavaScript Object with the same format as the default Ruby on Rails request params hash.",
+    "keywords": [
+        "form",
+        "serialize",
+        "json",
+        "helper"
+    ],
+    "homepage": "https://github.com/jameszhan/form2json"
+}

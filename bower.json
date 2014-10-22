@@ -1,0 +1,17 @@
+{
+  "name": "form2json",
+  "main": "form2json",
+  "version": "0.0.1",
+  "homepage": "https://github.com/jameszhan/form2json",
+  "authors": ["James Zhan <zhiqiangzhan@gmail.com>"],
+  "description": "jQuery plugin that serializes a form into a JavaScript Object with the same format as the default Ruby on Rails request params hash, For details you can refer to W3C HTML JSON form submission.",
+  "keywords": ["form", "serialize", "json", "w3c", "jquery"],
+  "license": "MIT",
+  "ignore": ["**/.*", "node_modules", "bower_components", "test", "tests"],
+  "dependencies": {
+    "jquery": "*"
+  },
+  "devDependencies": {
+    "jasmine": "2.0.0"
+  }
+}
