@@ -24,7 +24,7 @@
         "form",
         "serialize",
         "json",
-        "helper"
+        "w3c"
     ],
     "homepage": "https://github.com/jameszhan/form2json"
 }

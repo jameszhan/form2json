@@ -1,5 +1,5 @@
 // serializeJSON
-describe("$.serializeJSON", function () {
+describe("$.fn.serializeJSON", function () {
   var obj, $form;
 
   it('accepts a jQuery or Zepto object with a form', function() {
