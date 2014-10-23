@@ -2,7 +2,7 @@
 describe("$.fn.serializeJSON", function () {
   var obj, $form;
 
-  it('accepts a jQuery or Zepto object with a form', function() {
+  it('accepts a jQuery object with a form', function() {
     $form = $('<form>');
     $form.append($('<input type="text" name="1" value="1"/>'));
     $form.append($('<input type="text" name="2" value="2"/>'));
@@ -36,15 +36,17 @@ describe("$.fn.serializeJSON", function () {
   describe('with simple one-level attributes', function() {
     beforeEach(function() {
       $form = $('<form>');
-      $form.append($('<input type="text"  name="firstName" value="Mario"/>'));
-      $form.append($('<input type="text"  name="lastName"  value="Izquierdo"/>'));
+      $form.append($("<input name='name' type='text' value='Bender' />"));
+      $form.append($("<select name='hind'><option selected>Bitable</option><option>Kickable</option></select>"));
+      $form.append($("<input type='checkbox' name='shiny' checked />"));
     });
 
     it("serializes into plain attributes", function() {
       obj = $form.serializeJSON();
       expect(obj).toEqual({
-        firstName: "Mario",
-        lastName: "Izquierdo"
+        name:   "Bender",
+        hind:   "Bitable",
+        shiny:  true
       });
     });
   });
@@ -86,6 +88,7 @@ describe("$.fn.serializeJSON", function () {
     });
   });
 
+
   describe('with attribute names that are integers', function() {
     beforeEach(function() {
       $form = $('<form>');
@@ -98,14 +101,7 @@ describe("$.fn.serializeJSON", function () {
     it("still creates objects with keys that are strings", function() {
       obj = $form.serializeJSON();
       expect(obj).toEqual({
-        'foo': {
-          '0': 'zero',
-          '1': 'one',
-          '2': {
-            '0': 'two-zero',
-            '1': 'two-one'
-          }
-        }
+        'foo': ['zero', 'one', ['two-zero', 'two-one']]
       });
     });
   });
@@ -136,6 +132,7 @@ describe("$.fn.serializeJSON", function () {
     });
   });
 
+  /*
   describe('unchecked checkboxes', function() {
     it('are ignored by default (same as regural HTML forms and the jQuery.serializeArray function)', function() {
       $form = $('<form>');
@@ -886,264 +883,5 @@ describe("$.fn.serializeJSON", function () {
       });
     });
   });
-});
-
-// splitInputNameIntoKeysArray
-describe("$.serializeJSON.splitInputNameIntoKeysArray", function() {
-  var split = $.serializeJSON.splitInputNameIntoKeysArray;
-  it("accepts a simple name", function() {
-    expect(split('foo')).toEqual(['foo', '_']);
-  });
-  it("accepts a name wrapped in brackets", function() {
-    expect(split('[foo]')).toEqual(['foo', '_']);
-  });
-  it("accepts names separated by brackets", function() {
-    expect(split('foo[inn][bar]')).toEqual(['foo', 'inn', 'bar', '_']);
-    expect(split('foo[inn][bar][0]')).toEqual(['foo', 'inn', 'bar', '0', '_']);
-  });
-  it("accepts empty brakets as empty strings", function() {
-    expect(split('arr[][bar]')).toEqual(['arr', '', 'bar', '_']);
-    expect(split('arr[][][bar]')).toEqual(['arr', '', '', 'bar', '_']);
-    expect(split('arr[][bar][]')).toEqual(['arr', '', 'bar', '', '_']);
-  });
-  it("accepts nested brackets", function() {
-    expect(split('foo[inn[bar]]')).toEqual(['foo', 'inn', 'bar', '_']);
-    expect(split('foo[inn[bar[0]]]')).toEqual(['foo', 'inn', 'bar', '0', '_']);
-    expect(split('[foo[inn[bar[0]]]]')).toEqual(['foo', 'inn', 'bar', '0', '_']);
-    expect(split('foo[arr[]]')).toEqual(['foo', 'arr', '', '_']);
-    expect(split('foo[bar[arr[]]]')).toEqual(['foo', 'bar', 'arr', '', '_']);
-  });
-  it("returns type as last element", function() {
-    expect(split('foo')).toEqual(['foo', '_']);
-    expect(split('foo:number')).toEqual(['foo', 'number']);
-    expect(split('foo[bar]:number')).toEqual(['foo', 'bar','number']);
-    expect(split('foo[bar]:boolean')).toEqual(['foo', 'bar','boolean']);
-    expect(split('foo[bar]:null')).toEqual(['foo', 'bar','null']);
-    expect(split('foo[bar]:string')).toEqual(['foo', 'bar','string']);
-
-  });
-});
-
-// isValidArrayIndex
-describe("$.serializeJSON.isValidArrayIndex", function() {
-  var validIndex = $.serializeJSON.isValidArrayIndex;
-  it("accepts positive integers", function() {
-    expect(validIndex(0)).toBeTruthy();
-    expect(validIndex(1)).toBeTruthy();
-    expect(validIndex(222)).toBeTruthy();
-    expect(validIndex('0')).toBeTruthy();
-    expect(validIndex('1')).toBeTruthy();
-    expect(validIndex('222')).toBeTruthy();
-  });
-  it("rejects negative integers", function() {
-    expect(validIndex(-1)).toBeFalsy();
-    expect(validIndex(-22)).toBeFalsy();
-  });
-  it("rejects strings, objects and arrays", function() {
-    expect(validIndex('')).toBeFalsy();
-    expect(validIndex('foo')).toBeFalsy();
-    expect(validIndex({'foo': 'var'})).toBeFalsy();
-    expect(validIndex([0,1,2])).toBeFalsy();
-  });
-});
-
-// deepSet
-// used to assign nested keys like "address[state][abbr]" to an object
-describe("$.serializeJSON.deepSet", function () {
-  var deepSet = $.serializeJSON.deepSet;
-  var arr, obj, v, v2;
-
-  beforeEach(function () {
-    obj = {};
-    arr = [];
-    v = 'v';
-    v2 = 'v2';
-  });
-
-  it("simple attr ['foo']", function () {
-    deepSet(obj, ['foo'], v);
-    expect(obj).toEqual({foo: v});
-  });
-
-  it("simple attr ['foo'] twice should set the last value", function () {
-    deepSet(obj, ['foo'], v);
-    deepSet(obj, ['foo'], v2);
-    expect(obj).toEqual({foo: v2});
-  });
-
-  it("nested attr ['inn', 'foo']", function () {
-    deepSet(obj, ['inn', 'foo'], v);
-    expect(obj).toEqual({inn: {foo: v}});
-  });
-
-  it("nested attr ['inn', 'foo'] twice should set the last value", function () {
-    deepSet(obj, ['inn', 'foo'], v);
-    deepSet(obj, ['inn', 'foo'], v2);
-    expect(obj).toEqual({inn: {foo: v2}});
-  });
-
-  it("multiple assign attr ['foo'] and ['inn', 'foo']", function () {
-    deepSet(obj, ['foo'], v);
-    deepSet(obj, ['inn', 'foo'], v);
-    expect(obj).toEqual({foo: v, inn: {foo: v}});
-  });
-
-  it("very nested attr ['inn', 'inn', 'inn', 'foo']", function () {
-    deepSet(obj, ['inn', 'inn', 'inn', 'foo'], v);
-    expect(obj).toEqual({inn: {inn: {inn: {foo: v}}}});
-  });
-
-  it("array push with empty index, if repeat same object element key then it creates a new element", function () {
-    deepSet(arr, [''], v);        //=> arr === [v]
-    deepSet(arr, ['', 'foo'], v); //=> arr === [v, {foo: v}]
-    deepSet(arr, ['', 'bar'], v); //=> arr === [v, {foo: v, bar: v}]
-    deepSet(arr, ['', 'bar'], v); //=> arr === [v, {foo: v, bar: v}, {bar: v}]
-    expect(arr).toEqual([v, {foo: v, bar: v}, {bar: v}]);
-  });
-
-  it("array push with empty index and empty value, also creates a new element", function () {
-    deepSet(arr, ['', 'foo'], ''); //=> arr === [{foo: ''}]
-    deepSet(arr, ['', 'foo'], ''); //=> arr === [{foo: ''}, {foo: ''}, {foo: v}]
-    deepSet(arr, ['', 'foo'], v);  //=> arr === [{foo: ''}, {foo: ''}, {foo: v}]
-    deepSet(arr, ['', 'foo'], ''); //=> arr === [{foo: ''}, {foo: ''}, {foo: v}, {foo: ''}]
-    expect(arr).toEqual([{foo: ''}, {foo: ''}, {foo: v}, {foo: ''}]);
-  });
-
-  it("array assign with empty index should push the element", function () {
-    deepSet(arr, [''], 1);
-    deepSet(arr, [''], 2);
-    deepSet(arr, [''], 3);
-    expect(arr).toEqual([1,2,3]);
-  });
-
-  it("nested array assign with empty index should push the element", function () {
-    deepSet(obj, ['arr', ''], 1);
-    deepSet(obj, ['arr', ''], 2);
-    deepSet(obj, ['arr', ''], 3);
-    expect(obj).toEqual({arr: [1,2,3]});
-  });
-
-  it("nested arrays with empty indexes should push the elements to the most deep array", function () {
-    deepSet(arr, ['', '', ''], 1);
-    deepSet(arr, ['', '', ''], 2);
-    deepSet(arr, ['', '', ''], 3);
-    expect(arr).toEqual([[[1, 2, 3]]]);
-  });
-
-  describe('with useIntKeysAsArrayIndex option', function(){
-    var intIndx = {useIntKeysAsArrayIndex: true}
-
-    it("simple array ['0']", function () {
-      arr = [];
-      deepSet(arr, ['0'], v);
-      expect(arr).toEqual([v]); // still sets the value in the array because the 1st argument is an array
-
-      arr = [];
-      deepSet(arr, ['0'], v, intIndx);
-      expect(arr).toEqual([v]);
-    });
-
-    it("nested simple array ['arr', '0']", function () {
-      obj = {};
-      deepSet(obj, ['arr', '0'], v);
-      expect(obj).toEqual({'arr': {'0': v}});
-
-      obj = {};
-      deepSet(obj, ['arr', '0'], v, intIndx);
-      expect(obj).toEqual({'arr': [v]});
-    });
-
-    it("nested simple array multiple values", function () {
-      obj = {};
-      deepSet(obj, ['arr', '1'], v2);
-      deepSet(obj, ['arr', '0'], v);
-      expect(obj).toEqual({'arr': {'0': v, '1': v2}});
-
-      obj = {};
-      deepSet(obj, ['arr', '1'], v2, intIndx);
-      deepSet(obj, ['arr', '0'], v, intIndx);
-      expect(obj).toEqual({'arr': [v, v2]});
-    });
-
-    it("nested arrays with indexes should create a matrix", function () {
-      arr = [];
-      deepSet(arr, ['0', '0', '0'], 1);
-      deepSet(arr, ['0', '0', '1'], 2);
-      deepSet(arr, ['0', '1', '0'], 3);
-      deepSet(arr, ['0', '1', '1'], 4);
-      deepSet(arr, ['1', '0', '0'], 5);
-      deepSet(arr, ['1', '0', '1'], 6);
-      deepSet(arr, ['1', '1', '0'], 7);
-      deepSet(arr, ['1', '1', '1'], 8);
-      expect(arr).toEqual([{ '0': {'0': 1, '1': 2}, '1': {'0': 3, '1': 4}}, {'0': {'0': 5, '1': 6}, '1': {'0': 7, '1': 8}}]);
-
-      arr = [];
-      deepSet(arr, ['0', '0', '0'], 1, intIndx);
-      deepSet(arr, ['0', '0', '1'], 2, intIndx);
-      deepSet(arr, ['0', '1', '0'], 3, intIndx);
-      deepSet(arr, ['0', '1', '1'], 4, intIndx);
-      deepSet(arr, ['1', '0', '0'], 5, intIndx);
-      deepSet(arr, ['1', '0', '1'], 6, intIndx);
-      deepSet(arr, ['1', '1', '0'], 7, intIndx);
-      deepSet(arr, ['1', '1', '1'], 8, intIndx);
-      expect(arr).toEqual([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]);
-    });
-
-    it("nested object as array element ['arr', '0', 'foo']", function () {
-      obj = {};
-      deepSet(obj, ['arr', '0', 'foo'], v);
-      expect(obj).toEqual({arr: {'0': {foo: v}}});
-
-      obj = {};
-      deepSet(obj, ['arr', '0', 'foo'], v, intIndx);
-      expect(obj).toEqual({arr: [{foo: v}]});
-    });
-
-    it("array of objects", function (){
-      obj = {};
-      deepSet(obj, ['arr', '0', 'foo'], v);
-      deepSet(obj, ['arr', '0', 'bar'], v);
-      deepSet(obj, ['arr', '1', 'foo'], v2);
-      deepSet(obj, ['arr', '1', 'bar'], v2);
-      expect(obj).toEqual({'arr': {'0': {foo: v, bar: v}, '1': {foo: v2, bar: v2}}});
-
-      obj = {};
-      deepSet(obj, ['arr', '0', 'foo'], v, intIndx);
-      deepSet(obj, ['arr', '0', 'bar'], v, intIndx);
-      deepSet(obj, ['arr', '1', 'foo'], v2, intIndx);
-      deepSet(obj, ['arr', '1', 'bar'], v2, intIndx);
-      expect(obj).toEqual({'arr': [{foo: v, bar: v}, {foo: v2, bar: v2}]});
-    });
-
-    it("nested arrays mixing empty indexes with numeric indexes should push when using empty but assign when using numeric", function () {
-      obj = {};
-      deepSet(obj, ['arr', '', '0', ''], 1);
-      deepSet(obj, ['arr', '', '1', ''], 2);
-      deepSet(obj, ['arr', '', '0', ''], 3);
-      deepSet(obj, ['arr', '', '1', ''], 4);
-      expect(obj).toEqual({'arr': [{'0': [1, 3], '1': [2, 4]}]});
-
-      obj = {};
-      deepSet(obj, ['arr', '', '0', ''], 1, intIndx);
-      deepSet(obj, ['arr', '', '1', ''], 2, intIndx);
-      deepSet(obj, ['arr', '', '0', ''], 3, intIndx);
-      deepSet(obj, ['arr', '', '1', ''], 4, intIndx);
-      expect(obj).toEqual({'arr': [[[1, 3], [2, 4]]]});
-    });
-
-    it("should set all different nested values", function () {
-      deepSet(obj, ['foo'], v, intIndx);
-      deepSet(obj, ['inn', 'foo'], v, intIndx);
-      deepSet(obj, ['inn', 'arr', '0'], v, intIndx);
-      deepSet(obj, ['inn', 'arr', '1'], v2, intIndx);
-      deepSet(obj, ['inn', 'arr', '2', 'foo'], v, intIndx);
-      deepSet(obj, ['inn', 'arr', '2', 'bar'], v), intIndx;
-      deepSet(obj, ['inn', 'arr', ''], v, intIndx);
-      deepSet(obj, ['inn', 'arr', ''], v2, intIndx);
-      deepSet(obj, ['inn', 'arr', '', 'foo'], v2, intIndx);
-      deepSet(obj, ['inn', 'arr', '', 'bar'], v2, intIndx);
-      deepSet(obj, ['inn', 'arr', '2', 'inn', 'foo'], v, intIndx);
-      expect(obj).toEqual({foo: v, inn: {foo: v, arr: [v, v2, {foo: v, bar: v, inn: {foo: v}}, v, v2, {foo: v2, bar: v2}]}})
-    });
-  });
+  */
 });
