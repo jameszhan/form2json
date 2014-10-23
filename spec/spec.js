@@ -286,7 +286,7 @@ describe("$.fn.serializeJSON", function () {
         });
 
         it("serializes into plain attributes", function () {
-            obj = $form.serializeJSON({forceArray: false});
+            obj = $form.serializeJSON({useIntAsArrayIndex: false});
             expect(obj).toEqual({
                 "mix":  {
                     "":     "scalar",

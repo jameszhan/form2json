@@ -15,8 +15,8 @@
         serializeJSON: function(options) {
             var serializedObject = {},
                 opts = jQuery.extend({
-                    forceArray: true,
-                    forceNumber: true
+                    useIntAsArrayIndex: true,
+                    parseNumber: true
                 }, options),
                 $form = this,
                 isObject = function(obj) {
@@ -38,7 +38,7 @@
                             return el.value;
                         }
                     } else {
-                        return opts.forceNumber && isNumber(el.value) ? +el.value : el.value;
+                        return opts.parseNumber && isNumber(el.value) ? +el.value : el.value;
                     }
                 },
                 doAssign = function(target, keys, value) {
@@ -76,9 +76,9 @@
                         }
                         currentValue = target[key];
                         if (isUndefined(currentValue)) {
-                            target[key] = (nextKey === "" || opts.forceArray && isValidArrayIndex(nextKey)) ? [] : {};
+                            target[key] = (nextKey === "" || opts.useIntAsArrayIndex && isValidArrayIndex(nextKey)) ? [] : {};
                         } else if (isSimpleType(currentValue)) {
-                            target[key] = opts.forceArray ? [ currentValue ] : { "": currentValue };
+                            target[key] = opts.useIntAsArrayIndex ? [ currentValue ] : { "": currentValue };
                         }
 
                         doAssign(target[key], keys.slice(1), value);
