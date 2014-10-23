@@ -22,7 +22,7 @@
                 isValidArrayIndex = function( val ) { return /^[0-9]+$/.test(String(val));},
                 valueOf = function (el) {
                     if (el.value === "on" || el.value === "off") {
-                        if ( $form.find('input[type=checkbox][name=' + el.name + ']') ) {
+                        if ( $form.find('input[type=checkbox][name="' + el.name + '"]') ) {
                             return el.value === "on";
                         } else {
                             return el.value;

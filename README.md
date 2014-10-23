@@ -9,429 +9,57 @@ Usage Example
 
 HTML form (input, textarea and select tags supported):
 
-```html
+~~~html
 
 <form id="my-profile">
   <!-- simple attribute -->
-  <input type="text" name="fullName"              value="Mario Izquierdo" />
+  <input type="text" name="fullName"              value="James Zhan" />
 
   <!-- nested attributes -->
-  <input type="text" name="address[city]"         value="San Francisco" />
-  <input type="text" name="address[state][name]"  value="California" />
-  <input type="text" name="address[state][abbr]"  value="CA" />
+  <input type="text" name="address[city]"         value="Shenzhen" />
+  <input type="text" name="address[state][name]"  value="Guangdone" />
+  <input type="text" name="address[state][abbr]"  value="CN" />
 
   <!-- array -->
-  <input type="text" name="jobbies[]"             value="code" />
-  <input type="text" name="jobbies[]"             value="climbing" />
+  <input type="text" name="hobbies[]"             value="coding" />
+  <input type="text" name="hobbies[]"             value="reading" />
 
   <!-- and more ... -->
-  <textarea              name="projects[0][name]">serializeJSON</textarea>
+  <textarea              name="projects[0][name]">form2json</textarea>
   <textarea              name="projects[0][language]">javascript</textarea>
-  <input type="hidden"   name="projects[0][popular]" value="0" />
-  <input type="checkbox" name="projects[0][popular]" value="1" checked="checked"/>
+  <input type="checkbox" name="projects[0][popular]" checked="checked"/>
 
-  <textarea              name="projects[1][name]">tinytest.js</textarea>
-  <textarea              name="projects[1][language]">javascript</textarea>
-  <input type="hidden"   name="projects[1][popular]" value="0" />
+  <textarea              name="projects[1][name]">peony</textarea>
+  <textarea              name="projects[1][language]">ruby</textarea>
   <input type="checkbox" name="projects[1][popular]" value="1"/>
 </form>
 
-```
+~~~
 
 JavaScript:
 
-```javascript
+~~~javascript
 
 $('#my-profile').serializeJSON();
 // returns =>
 {
-  fullName: "Mario Izquierdo",
-
-  address: {
-    city: "San Francisco",
-    state: {
-      name: "California",
-      abbr: "CA"
-    }
-  },
-
-  jobbies: ["code", "climbing"],
-
-  projects: {
-    '0': { name: "serializeJSON", language: "javascript", popular: "1" },
-    '1': { name: "tinytest.js",   language: "javascript", popular: "0" }
-  }
+    fullName: "James Zhan",
+    address: {
+        city: "Shenzhen",
+        state: {
+            name: "Guangdone",
+            abbr: "CN"
+        }
+    },
+    hobbies: ["coding", "reading"],
+    projects: [
+        { name: "form2json", language: "javascript", popular: true },
+        { name: "peony", language: "ruby" }
+    ]
 }
+~~~
 
-```
-
-The `serializeJSON` function returns a JavaScript object, not a JSON String. It should probably have been called `serializeObject`, or something like that, but those names were already taken.
-
-To serialize into JSON, use the `JSON.stringify` method, that is available on all major [new browsers](http://caniuse.com/json).
-To support old browsers, just include the [json2.js](https://github.com/douglascrockford/JSON-js) polyfill (as described on [stackoverfow](http://stackoverflow.com/questions/191881/serializing-to-json-in-jquery)).
-
-```javascript
-  var json = JSON.stringify(object);
-```
-
-
-Parse values with :types
-------------------------
-
-Values are **strings** by default.
-But you can force values to be parsed with specific types by appending the type with a colon.
-
-```html
-<form>
-  <input type="text" name="notype"           value="default type is :string"/>
-  <input type="text" name="string:string"    value=":string type overrides parsing options"/>
-  <input type="text" name="excluded:skip"    value="Use :skip to not include this field in the result"/>
-
-  <input type="text" name="number[1]:number"           value="1"/>
-  <input type="text" name="number[1.1]:number"         value="1.1"/>
-  <input type="text" name="number[other stuff]:number" value="other stuff"/>
-
-  <input type="text" name="boolean[true]:boolean"      value="true"/>
-  <input type="text" name="boolean[false]:boolean"     value="false"/>
-  <input type="text" name="boolean[0]:boolean"         value="0"/>
-
-  <input type="text" name="null[null]:null"            value="null"/>
-  <input type="text" name="null[other stuff]:null"     value="other stuff"/>
-
-  <input type="text" name="auto[string]:auto"          value="text with stuff"/>
-  <input type="text" name="auto[0]:auto"               value="0"/>
-  <input type="text" name="auto[1]:auto"               value="1"/>
-  <input type="text" name="auto[true]:auto"            value="true"/>
-  <input type="text" name="auto[false]:auto"           value="false"/>
-  <input type="text" name="auto[null]:auto"            value="null"/>
-  <input type="text" name="auto[list]:auto"            value="[1, 2, 3]"/>
-
-  <input type="text" name="array[empty]:array"         value="[]"/>
-  <input type="text" name="array[list]:array"          value="[1, 2, 3]"/>
-
-  <input type="text" name="object[empty]:object"       value="{}"/>
-  <input type="text" name="object[dict]:object"        value='{"my": "stuff"}'/>
-</form>
-```
-
-```javascript
-$('form').serializeJSON();
-// returns =>
-{
-  "notype": "default type is :string",
-  "string": ":string type overrides parsing options",
-  // :skip type removes the field from the output
-  "number": {
-    "1": 1,
-    "1.1": 1.1,
-    "other stuff": NaN, // <-- Other stuff parses as NaN (Not a Number)
-  },
-  "boolean": {
-    "true": true,
-    "false": false,
-    "0": false, // <-- "false", "null", "undefined", "", "0" parse as false
-  },
-  "null": {
-    "null": null, // <-- "false", "null", "undefined", "", "0" parse as null
-    "other stuff": "other stuff"
-  },
-  "auto": { // works as the parseAll option
-    "string": "text with stuff",
-    "0": 0,         // <-- parsed as number
-    "1": 1,         // <-- parsed as number
-    "true": true,   // <-- parsed as boolean
-    "false": false, // <-- parsed as boolean
-    "null": null,   // <-- parsed as null
-    "list": "[1, 2, 3]" // <-- array and object types are not auto-parsed
-  },
-  "array": { // <-- works using JSON.parse
-    "empty": [],
-    "not empty": [1,2,3]
-  },
-  "object": { // <-- works using JSON.parse
-    "empty": {},
-    "not empty": {"my": "stuff"}
-  }
-}
-```
-
-
-Options
--------
-
-By default:
-
-  * Values are always **strings** (unless using :types in the input names)
-  * Keys (names) are always strings (no auto-array detection by default)
-  * Unchecked checkboxes are ignored (as defined in the W3C rules for [successful controls](http://www.w3.org/TR/html401/interact/forms.html#h-17.13.2)).
-  * Disabled elements are ignored (W3C rules)
-
-This is because `serializeJSON` is designed to return exactly the same as a regular HTML form submission when serialized as Rack/Rails params.
-
-To change the default behavior you have the following options:
-
-  * **parseBooleans: true**, convert strings `"true"` and `"false"` to booleans `true` and `false`.
-  * **parseNumbers: true**, convert strings like `"1"`, `"33.33"`, `"-44"` to numbers like `1`, `33.33`, `-44`.
-  * **parseNulls: true**, convert the string `"null"` to the null value `null`.
-  * **parseAll: true**, all of the above. Makes default type to be `:auto` instead of `:string`.
-  * **parseWithFunction: function**, define your own parse function(inputValue, inputName) { return parsedValue }
-  * **checkboxUncheckedValue: string**, Use this value for unchecked checkboxes, instead of ignoring them. Make sure to use a String. If the value needs to be parsed (i.e. to a Boolean) use a parse option (i.e. `parseBooleans: true`).
-  * **useIntKeysAsArrayIndex: true**, when using integers as keys, serialize as an array.
-
-More details about options usage in the sections below.
-
-
-
-## Automatically Detect Types With Parse Options ##
-
-If no :types are specified in the name, the values are always parsed as strings:
-
-```html
-<form>
-  <input type="text" name="bool[true]"    value="true"/>
-  <input type="text" name="bool[false]"   value="false"/>
-  <input type="text" name="number[0]"     value="0"/>
-  <input type="text" name="number[1]"     value="1"/>
-  <input type="text" name="number[2.2]"   value="2.2"/>
-  <input type="text" name="number[-2.25]" value="-2.25"/>
-  <input type="text" name="null"          value="null"/>
-  <input type="text" name="string"        value="text is always string"/>
-  <input type="text" name="empty"         value=""/>
-</form>
-```
-
-```javascript
-$('form').serializeJSON();
-// returns =>
-{
-  "bool": {
-    "true": "true",
-    "false": "false",
-  }
-  "number": {
-    "0": "0",
-    "1": "1",
-    "2.2": "2.2",
-    "-2.25": "-2.25",
-  }
-  "null": "null",
-  "string": "text is always string",
-  "empty": ""
-}
-```
-
-Note that all values are **strings**, even if they look like booleans, numbers or nulls.
-
-To auto-detect types, use the parse options. For example, to parse nulls and numbers:
-
-
-```javascript
-$('form').serializeJSON({parseNulls: true, parseNumbers: true});
-// returns =>
-{
-  "bool": {
-    "true": "true", // booleans are still strings, because parseBooleans was not set
-    "false": "false",
-  }
-  "number": {
-    "0": 0, // numbers are parsed because parseNumbers: true
-    "1": 1,
-    "2.2": 2.2,
-    "-2.25": -2.25,
-  }
-  "null": null, // "null" strings are converted to null becase parseNulls: true
-  "string": "text is always string",
-  "empty": ""
-}
-```
-
-For rare cases, a custom parser can be defined with a function:
-
-```javascript
-var emptyStringsAndZerosToNulls = function(val, inputName) {
-  if (val === "") return null; // parse empty strings as nulls
-  if (val === 0) return null;  // parse 0 as null
-  return val;
-}
-
-$('form').serializeJSON({parseWithFunction: emptyStringsAndZerosToNulls, parseNumbers: true});
-// returns =>
-{
-  "bool": {
-    "true": "true",
-    "false": "false",
-  }
-  "number": {
-    "0": null, // <-- parsed with custom function
-    "1": 1,
-    "2.2": 2.2,
-    "-2.25": -2.25,
-  }
-  "null": "null",
-  "string": "text is always string",
-  "empty": null // <-- parsed with custom function
-}
-```
-
-
-## Include unchecked checkboxes ##
-
-In my opinion, the most confusing detail when serializing a form is the input type checkbox, that will include the value if checked, and nothing if unchecked.
-
-To deal with this, it is a common practice to use hidden fields for the "unchecked" values:
-
-```html
-<!-- Only one booleanAttr will be serialized, being "true" or "false" depending if the checkbox is selected or not -->
-<input type="hidden"   name="booleanAttr" value="false" />
-<input type="checkbox" name="booleanAttr" value="true" />
-```
-
-This solution is somehow verbose, but it is unobtrusive and ensures progressive enhancement, because it works without JavaScript as well.
-
-But, to make things easier, `serializeJSON` includes the option `checkboxUncheckedValue` and the possibility to add the attribute `data-unchecked-value` to the checkboxes.
-
-For example:
-
-```html
-<form>
-  <input type="checkbox" name="check1" value="true" checked/>
-  <input type="checkbox" name="check2" value="true"/>
-  <input type="checkbox" name="check3" value="true"/>
-</form>
-```
-
-Serializes like this by default:
-
-```javascript
-$('form').serializeJSON();
-// returns =>
-{'check1': 'true'} // Note that check2 and check3 are not included because they are not checked
-```
-
-Which ignores any unchecked checkboxes.
-To include all checkboxes, use the `checkboxUncheckedValue` option like this:
-
-```javascript
-$('form').serializeJSON({checkboxUncheckedValue: "false"});
-// returns =>
-{'check1': 'true', check2: 'false', check3: 'false'}
-```
-
-The "unchecked" value can also be specified via the HTML attribute `data-unchecked-value` (Note this attribute is only recognized by the plugin):
-
-```html
-<form id="checkboxes">
-  <input type="checkbox" name="checked[bool]"  value="true" data-unchecked-value="false" checked/>
-  <input type="checkbox" name="checked[bin]"   value="1"    data-unchecked-value="0"     checked/>
-  <input type="checkbox" name="checked[cool]"  value="YUP"                               checked/>
-
-  <input type="checkbox" name="unchecked[bool]"  value="true" data-unchecked-value="false" />
-  <input type="checkbox" name="unchecked[bin]"   value="1"    data-unchecked-value="0" />
-  <input type="checkbox" name="unchecked[cool]"  value="YUP" /> <!-- No unchecked value specified -->
-</form>
-```
-
-Serializes like this by default:
-```javascript
-$('form#checkboxes').serializeJSON(); // Note no option is used
-// returns =>
-{
-  'checked': {
-    'bool':  'true',
-    'bin':   '1',
-    'cool':  'YUP'
-  },
-  'unchecked': {
-    'bool': 'false',
-    'bin':  '0'
-    // Note that unchecked cool does not appear, because it doesn't use data-unchecked-value
-  }
-}
-```
-
-You can use both the option `checkboxUncheckedValue` and the attribute `data-unchecked-value` at the same time, in which case the attribute has precedence over the option.
-And remember that you can combine it with other options to parse values as well.
-
-```javascript
-$('form#checkboxes').serializeJSON({checkboxUncheckedValue: 'NOPE', parseBooleans: true, parseNumbers: true});
-// returns =>
-{
-  'checked': {
-    'bool':  true,
-    'bin':   1,
-    'cool':  'YUP'
-  },
-  'unchecked': {
-    'bool': false, // value from data-unchecked-value attribute, and parsed with parseBooleans
-    'bin':  0,     // value from data-unchecked-value attribute, and parsed with parseNumbers
-    'cool': 'NOPE' // value from checkboxUncheckedValue option
-  }
-}
-```
-
-
-## Use integer keys as array indexes ##
-
-Using the option `useIntKeysAsArrayIndex`.
-
-For example:
-
-```html
-<form>
-  <input type="text" name="arr[0]" value="foo"/>
-  <input type="text" name="arr[1]" value="var"/>
-  <input type="text" name="arr[5]" value="inn"/>
-</form>
-```
-
-Serializes like this by default:
-
-```javascript
-$('form').serializeJSON();
-// returns =>
-{'arr': {'0': 'foo', '1': 'var', '5': 'inn' }}
-```
-
-Which is how the Rack [parse_nested_query](http://codefol.io/posts/How-Does-Rack-Parse-Query-Params-With-parse-nested-query) method behaves (remember that serializeJSON input name format is inspired by Rails parameters, that are parsed using this Rack method).
-
-But to interpret integers as array indexes, use the option `useIntKeysAsArrayIndex`:
-
-```javascript
-$('form').serializeJSON({useIntKeysAsArrayIndex: true});
-// returns =>
-{'arr': ['foo', 'var', undefined, undefined, undefined, 'inn']}
-```
-
-**Note**: that this was the default behavior of serializeJSON before version 2. Use this option for backwards compatibility.
-
-
-## Defaults ##
-
-All options defaults are defined in `$.serializeJSON.defaultOptions`. You can just modify it to avoid setting the option on every call to `serializeJSON`.
-
-For example:
-
-```javascript
-$.serializeJSON.defaultOptions.parseAll = true; // parse booleans, numbers and nulls by default
-
-$('form').serializeJSON(); // No options => then use $.serializeJSON.defaultOptions
-// returns =>
-{
-  "bool": {
-    "true": true,
-    "false": false,
-  }
-  "number": {
-    "0": 0,
-    "1": 1,
-    "2.2": 2.2,
-    "-2.25": -2.25,
-  }
-  "null": null,
-  "string": "text is always string",
-  "empty": ""
-}
-```
+[W3C HTML JSON form submission](http://www.w3.org/TR/2014/WD-html-json-forms-20140529/) have listed all the mapping rules.
 
 
 Install
