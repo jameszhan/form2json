@@ -12,12 +12,22 @@
     "use strict";
 
     jQuery.fn.extend({
-        serializeJSON: function () {
-            var serializedObject = { }, $form = this,
-                isObject =  function(obj) {
+        serializeJSON: function (options) {
+            var serializedObject = { },
+                opts = jQuery.extend({
+                    forceArray: true,
+                    forceNumber: true
+                }, options),
+                $form = this,
+                isObject = function( obj ) {
                     var type = typeof obj;
                     return type === 'function' || type === 'object' && !!obj;
                 },
+                isSimpleType = function(obj) {
+                    var type = typeof obj;
+                    return type !== 'function' && type !== 'object';
+                },
+                isNumber = function( val ) { return /^\d+(\.\d+)?$/.test(val); },
                 isUndefined = function( obj ) { return obj === void 0; },
                 isValidArrayIndex = function( val ) { return /^[0-9]+$/.test(String(val));},
                 valueOf = function (el) {
@@ -28,11 +38,11 @@
                             return el.value;
                         }
                     } else {
-                        return el.value;
+                        return opts.forceNumber && isNumber(el.value) ? +el.value : el.value;
                     }
                 },
                 doAssign = function ( target, keys, value ) {
-                    var key, nextKey, oldValue, lastIndex, lastValue;
+                    var key, nextKey, oldValue, lastIndex, lastValue, currentValue;
                     if (isUndefined(target)) { throw new Error("ArgumentError: param 'target' expected to be an object or array, found undefined"); }
                     if (!keys || keys.length === 0) { throw new Error("ArgumentError: param 'keys' expected to be an array with least one element"); }
                     key = keys[0];
@@ -60,17 +70,22 @@
                                 key = lastIndex + 1;
                             }
                         }
-                        if ( isUndefined( target[ key ] ) ) {
-                            target[key] = (nextKey === '' || isValidArrayIndex( nextKey )) ? [] : {};
+                        currentValue = target[ key ];
+                        if ( isUndefined( currentValue ) ) {
+                            target[key] = (nextKey === '' || opts.forceArray && isValidArrayIndex( nextKey )) ? [] : {};
+                        } else if (isSimpleType(currentValue)) {
+                            target[key] = opts.forceArray ? [currentValue] : {"": currentValue};
                         }
+
                         doAssign(target[key], keys.slice(1), value);
                     }
                 };
-            jQuery.each(this.serializeArray(), function (i, e) {
+
+            jQuery.each( this.serializeArray(), function ( i, e ) {
                 var keys;
-                if (e.value && e.name) {
-                    keys = $.map(e.name.split('['), function( key ) { return key.replace(/]/g, ''); });
-                    doAssign(serializedObject, keys, valueOf(e));
+                if ( e.value && e.name ) {
+                    keys = $.map(e.name.split('['), function( key ) { return key.replace(/\]/g, ''); });
+                    doAssign( serializedObject, keys, valueOf( e ) );
                 }
             });
             return serializedObject;

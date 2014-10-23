@@ -44,7 +44,7 @@ describe("$.fn.serializeJSON", function () {
         $form.append($('<input type="text" name="1" value="1"/>'));
         $form.append($('<input type="text" name="2" value="2"/>'));
         obj = $form.serializeJSON();
-        expect(obj).toEqual({"1": "1", "2": "2"});
+        expect(obj).toEqual({"1": 1, "2": 2});
     });
 
 
@@ -52,7 +52,7 @@ describe("$.fn.serializeJSON", function () {
         it('accepts a jQuery object with inputs', function () {
             $inputs = $('<input type="text" name="1" value="1"/>').add($('<input type="text" name="2" value="2"/>'));
             obj = $inputs.serializeJSON();
-            expect(obj).toEqual({"1": "1", "2": "2"});
+            expect(obj).toEqual({"1": 1, "2": 2});
         });
 
         it('accepts a jQuery object with forms and inputs', function () {
@@ -66,27 +66,9 @@ describe("$.fn.serializeJSON", function () {
             $inputs = $('<input type="text" name="5" value="5"/>').add($('<input type="text" name="6" value="6"/>'));
             $els = $form1.add($form2).add($inputs);
             obj = $els.serializeJSON();
-            expect(obj).toEqual({"1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6"});
+            expect(obj).toEqual({"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6});
         });
     }
-
-    describe('with simple one-level attributes', function () {
-        beforeEach(function () {
-            $form = $('<form>');
-            $form.append($("<input name='name' type='text' value='Bender' />"));
-            $form.append($("<select name='hind'><option selected>Bitable</option><option>Kickable</option></select>"));
-            $form.append($("<input type='checkbox' name='shiny' checked />"));
-        });
-
-        it("serializes into plain attributes", function () {
-            obj = $form.serializeJSON();
-            expect(obj).toEqual({
-                name: "Bender",
-                hind: "Bitable",
-                shiny: true
-            });
-        });
-    });
 
     describe('with nested object attributes', function () {
         beforeEach(function () {
@@ -163,9 +145,190 @@ describe("$.fn.serializeJSON", function () {
                 projects: [
                     { name: "form2json", language: "javascript" },
                     { name: "peony", language: "ruby" },
-                    { name: "tags", languages: ["coffeescript", "javascript"] },
+                    { name: "tags", languages: ["coffeescript", "javascript"] }
                 ]
             });
         });
     });
+
+    describe('Basic Keys', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='name' type='text' value='Bender' />"));
+            $form.append($("<select name='hind'><option selected>Bitable</option><option>Kickable</option></select>"));
+            $form.append($("<input type='checkbox' name='shiny' checked />"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                name: "Bender",
+                hind: "Bitable",
+                shiny: true
+            });
+        });
+    });
+
+    describe('Multiple Values', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input type='number' name='bottle-on-wall' value='1'>"));
+            $form.append($("<input type='number' name='bottle-on-wall' value='2'>"));
+            $form.append($("<input type='number' name='bottle-on-wall' value='3'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                "bottle-on-wall": [1, 2, 3]
+            });
+        });
+    });
+
+    describe('Deeper Structure', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='pet[species]' value='Dahut'>"));
+            $form.append($("<input name='pet[name]' value='Hypatia'>"));
+            $form.append($("<input name='kids[1]' value='Thelma'>"));
+            $form.append($("<input name='kids[0]' value='Ashley'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                "pet": {
+                    "species":  "Dahut",
+                    "name":     "Hypatia"
+                },
+                "kids": ["Ashley", "Thelma"]
+            });
+        });
+    });
+
+    describe('Sparse Arrays', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='hearbeat[0]' value='thunk'>"));
+            $form.append($("<input name='hearbeat[2]' value='thunk'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                "hearbeat": ["thunk", undefined, "thunk"]
+            });
+        });
+    });
+
+    describe('Even Deeper', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='pet[0][species]' value='Dahut'>"));
+            $form.append($("<input name='pet[0][name]' value='Hypatia'>"));
+            $form.append($("<input name='pet[1][species]' value='Felis Stultus'>"));
+            $form.append($("<input name='pet[1][name]' value='Billie'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                "pet":  [
+                    {
+                        "species":  "Dahut",
+                        "name":     "Hypatia"
+                    },
+                    {
+                        "species":  "Felis Stultus",
+                        "name":     "Billie"
+                    }
+                ]
+            });
+        });
+    });
+
+    describe('Such Deep', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='wow[such][deep][3][much][power][!]' value='Amaze'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                "wow":  {
+                    "such": {
+                        "deep": [
+                            undefined,
+                            undefined,
+                            undefined,   {
+                                "much": {
+                                    "power": {
+                                        "!":  "Amaze"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            });
+        });
+    });
+
+    describe('Merge Behaviour', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='mix' value='scalar'>"));
+            $form.append($("<input name='mix[0]' value='array 1'>"));
+            $form.append($("<input name='mix[2]' value='array 2'>"));
+            $form.append($("<input name='mix[key]' value='key key'>"));
+            $form.append($("<input name='mix[car]' value='car key'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON({forceArray: false});
+            expect(obj).toEqual({
+                "mix":  {
+                    "":     "scalar",
+                    "0":    "array 1",
+                    "2":    "array 2",
+                    "key":  "key key",
+                    "car":  "car key"
+                }
+            });
+        });
+    });
+
+    describe('Append', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='highlander[]' value='one'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                "highlander":  ["one"]
+            });
+        });
+    });
+
+    describe('Invalid Syntax', function () {
+        beforeEach(function () {
+            $form = $('<form>');
+            $form.append($("<input name='error[good]' value='BOOM!'>"));
+            $form.append($("<input name='error[bad' value='BOOM BOOM!'>"));
+        });
+
+        it("serializes into plain attributes", function () {
+            obj = $form.serializeJSON();
+            expect(obj).toEqual({
+                error : {
+                    good : 'BOOM!',
+                    bad : 'BOOM BOOM!'
+                }
+            });
+        });
+    });
+
 });
