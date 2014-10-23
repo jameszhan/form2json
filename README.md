@@ -16,22 +16,22 @@ HTML form (input, textarea and select tags supported):
   <input type="text" name="fullName"              value="James Zhan" />
 
   <!-- nested attributes -->
-  <input type="text" name="address[city]"         value="Shenzhen" />
+  <input type="text" name="address[city]" value="Shenzhen" />
   <input type="text" name="address[state][name]"  value="Guangdone" />
   <input type="text" name="address[state][abbr]"  value="CN" />
 
   <!-- array -->
-  <input type="text" name="hobbies[]"             value="coding" />
-  <input type="text" name="hobbies[]"             value="reading" />
+  <input type="text" name="hobbies[]" value="coding" />
+  <input type="text" name="hobbies[]" value="reading" />
 
   <!-- and more ... -->
-  <textarea              name="projects[0][name]">form2json</textarea>
-  <textarea              name="projects[0][language]">javascript</textarea>
+  <textarea name="projects[0][name]">form2json</textarea>
+  <textarea name="projects[0][language]">javascript</textarea>
   <input type="checkbox" name="projects[0][popular]" checked="checked"/>
 
-  <textarea              name="projects[1][name]">peony</textarea>
-  <textarea              name="projects[1][language]">ruby</textarea>
-  <input type="checkbox" name="projects[1][popular]" value="1"/>
+  <textarea name="projects[1][name]">peony</textarea>
+  <textarea name="projects[1][language]">ruby</textarea>
+  <input type="checkbox" name="projects[1][popular]" />
 </form>
 
 ~~~
@@ -92,7 +92,7 @@ Probably to submit via AJAX, or to handle user input in your JavaScript applicat
 
 To submit a form using AJAX, the jQuery [.serialize()](https://api.jquery.com/serialize/) function should work just fine. Most backend frameworks will understand the form attribute names and convert them to accessible values that can be easily assigned to your backend models.
 
-Actually, the input name format used by `.serializeJSON()` is borrowed from [Rails Parameter Naming Conventions](http://guides.rubyonrails.org/form_helpers.html#understanding-parameter-naming-conventions).
+Actually, the input name format used by `.serializeJSON()` is borrowed from [W3C HTML JSON form submission](http://www.w3.org/TR/2014/WD-html-json-forms-20140529/).
 
 But if you want to handle user input in the frontend JavaScript application, then `.serialize()` is not very useful because it just creates a params string. Another jQuery function is `.serializeArray`, but it doesn't handle nested objects.
 
