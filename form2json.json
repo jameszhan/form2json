@@ -1,6 +1,6 @@
 {
     "name": "form2json",
-    "version": "0.0.3",
+    "version": "0.1.0",
     "title": "W3C HTML JSON form submission",
     "author": {
         "name": "James Zhan",
@@ -24,7 +24,9 @@
         "form",
         "serialize",
         "json",
-        "w3c"
+        "w3c",
+        "serializeJSON",
+        "serializeObject"
     ],
     "homepage": "https://github.com/jameszhan/form2json"
 }

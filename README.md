@@ -1,7 +1,7 @@
 form2json
 ====================
 
-Adds the method `.serializeJSON()` to [jQuery](http://jquery.com/) that serializes a form into a JavaScript Object with the same format as the default Ruby on Rails request params hash, and also it's a [W3C Working Draft](http://www.w3.org/TR/2014/WD-html-json-forms-20140529/).
+Adds the method `.serializeJSON()` to [jQuery](http://jquery.com/) that serializes a form into a JavaScript Object with the same format as [W3C Working Draft](http://www.w3.org/TR/2014/WD-html-json-forms-20140529/).
 
 
 Usage Example

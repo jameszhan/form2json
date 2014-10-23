@@ -12,27 +12,27 @@
     "use strict";
 
     jQuery.fn.extend({
-        serializeJSON: function (options) {
-            var serializedObject = { },
+        serializeJSON: function(options) {
+            var serializedObject = {},
                 opts = jQuery.extend({
                     forceArray: true,
                     forceNumber: true
                 }, options),
                 $form = this,
-                isObject = function( obj ) {
+                isObject = function(obj) {
                     var type = typeof obj;
-                    return type === 'function' || type === 'object' && !!obj;
+                    return type === "function" || type === "object" && !!obj;
                 },
                 isSimpleType = function(obj) {
                     var type = typeof obj;
-                    return type !== 'function' && type !== 'object';
+                    return type !== "function" && type !== "object";
                 },
-                isNumber = function( val ) { return /^\d+(\.\d+)?$/.test(val); },
-                isUndefined = function( obj ) { return obj === void 0; },
-                isValidArrayIndex = function( val ) { return /^[0-9]+$/.test(String(val));},
-                valueOf = function (el) {
+                isNumber = function(val) { return /^\d+(\.\d+)?$/.test(val); },
+                isUndefined = function(obj) { return obj === void 0; },
+                isValidArrayIndex = function(val) { return /^[0-9]+$/.test(String(val));},
+                valueFor = function(el) {
                     if (el.value === "on" || el.value === "off") {
-                        if ( $form.find('input[type=checkbox][name="' + el.name + '"]') ) {
+                        if ($form.find("input[type=checkbox][name='" + el.name + "']")) {
                             return el.value === "on";
                         } else {
                             return el.value;
@@ -41,27 +41,31 @@
                         return opts.forceNumber && isNumber(el.value) ? +el.value : el.value;
                     }
                 },
-                doAssign = function ( target, keys, value ) {
+                doAssign = function(target, keys, value) {
                     var key, nextKey, oldValue, lastIndex, lastValue, currentValue;
-                    if (isUndefined(target)) { throw new Error("ArgumentError: param 'target' expected to be an object or array, found undefined"); }
-                    if (!keys || keys.length === 0) { throw new Error("ArgumentError: param 'keys' expected to be an array with least one element"); }
+                    if (isUndefined(target)) {
+                        throw new Error("ArgumentError: param 'target' expected to be an object or array, found undefined");
+                    }
+                    if (!keys || keys.length === 0) {
+                        throw new Error("ArgumentError: param 'keys' expected to be an array with least one element");
+                    }
                     key = keys[0];
                     if (keys.length === 1) {
-                        if (key === '') {
+                        if (key === "") {
                             target.push(value);
                         } else {
                             oldValue = target[key];
                             if (oldValue && oldValue.push) { // Handle the same name
                                 oldValue.push(value);
                             } else if (oldValue) {
-                                target[key] = [oldValue, value];
+                                target[key] = [ oldValue, value ];
                             } else {
                                 target[key] = value;
                             }
                         }
                     } else {
                         nextKey = keys[1];
-                        if ( key === '' ) {
+                        if (key === "") {
                             lastIndex = target.length - 1; //target must be an array
                             lastValue = target[lastIndex];
                             if (isObject(lastValue) && (isUndefined(lastValue[nextKey]) || keys.length > 2)) {
@@ -70,22 +74,22 @@
                                 key = lastIndex + 1;
                             }
                         }
-                        currentValue = target[ key ];
-                        if ( isUndefined( currentValue ) ) {
-                            target[key] = (nextKey === '' || opts.forceArray && isValidArrayIndex( nextKey )) ? [] : {};
+                        currentValue = target[key];
+                        if (isUndefined(currentValue)) {
+                            target[key] = (nextKey === "" || opts.forceArray && isValidArrayIndex(nextKey)) ? [] : {};
                         } else if (isSimpleType(currentValue)) {
-                            target[key] = opts.forceArray ? [currentValue] : {"": currentValue};
+                            target[key] = opts.forceArray ? [ currentValue ] : { "": currentValue };
                         }
 
                         doAssign(target[key], keys.slice(1), value);
                     }
                 };
 
-            jQuery.each( this.serializeArray(), function ( i, e ) {
+            jQuery.each(this.serializeArray(), function(i, e) {
                 var keys;
                 if ( e.value && e.name ) {
-                    keys = $.map(e.name.split('['), function( key ) { return key.replace(/\]/g, ''); });
-                    doAssign( serializedObject, keys, valueOf( e ) );
+                    keys = jQuery.map(e.name.split("["), function( key ) { return key.replace(/\]/g, ""); });
+                    doAssign( serializedObject, keys, valueFor( e ) );
                 }
             });
             return serializedObject;
