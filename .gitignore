@@ -1,1 +1,4 @@
 .DS_Store
+
+spec/lib/
+spec/spec_runner_jquery.html
